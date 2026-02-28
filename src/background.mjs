@@ -61,8 +61,7 @@ chrome.notifications.onButtonClicked.addListener(
   },
 );
 
-// TODO: use offscreen API to integrate implementation in chrome and firefox
-// Save file message listener for firefox
+// Save file message listener
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   const { type, target, data } = message || {};
   if (target !== 'background') return;

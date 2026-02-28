@@ -13,18 +13,34 @@ export default async function saveToFile(
   { ext, mimeType },
   saveAs = false,
 ) {
-  const blob = new Blob([text], { type: mimeType });
   const filename = name + ext;
-  const url = URL.createObjectURL(blob);
+  let url;
+  let needsRevoke = false;
+
+  if (typeof URL.createObjectURL === 'function') {
+    const blob = new Blob([text], { type: mimeType });
+    url = URL.createObjectURL(blob);
+    needsRevoke = true;
+  } else {
+    // Service worker context - use data URL
+    const bytes = new TextEncoder().encode(text);
+    const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join(
+      '',
+    );
+    url = `data:${mimeType};base64,${btoa(binary)}`;
+  }
+
   const id = await chrome.downloads.download({ url, filename, saveAs });
 
-  /** @param {chrome.downloads.DownloadDelta} delta  */
-  const onChange = (delta) => {
-    if (delta.id === id && delta.state?.current !== 'in_progress') {
-      chrome.downloads.onChanged.removeListener(onChange);
-      URL.revokeObjectURL(url);
-    }
-  };
+  if (needsRevoke) {
+    /** @param {chrome.downloads.DownloadDelta} delta  */
+    const onChange = (delta) => {
+      if (delta.id === id && delta.state?.current !== 'in_progress') {
+        chrome.downloads.onChanged.removeListener(onChange);
+        URL.revokeObjectURL(url);
+      }
+    };
 
-  chrome.downloads.onChanged.addListener(onChange);
+    chrome.downloads.onChanged.addListener(onChange);
+  }
 }
