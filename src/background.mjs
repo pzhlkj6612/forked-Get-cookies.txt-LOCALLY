@@ -60,18 +60,21 @@ chrome.notifications.onButtonClicked.addListener(
   },
 );
 
+/**
+ * Save text content to a file using data URL
+ */
+const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
+  const filename = name + ext;
+  const bytes = new TextEncoder().encode(text);
+  const binary = Array.from(bytes, (byte) =>
+    String.fromCharCode(byte),
+  ).join('');
+  const url = `data:${mimeType};base64,${btoa(binary)}`;
+  await chrome.downloads.download({ url, filename, saveAs });
+};
+
 // Handle save file messages from the popup
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-  const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
-    const filename = name + ext;
-    const bytes = new TextEncoder().encode(text);
-    const binary = Array.from(bytes, (byte) =>
-      String.fromCharCode(byte),
-    ).join('');
-    const url = `data:${mimeType};base64,${btoa(binary)}`;
-    await chrome.downloads.download({ url, filename, saveAs });
-  };
-
   const { type, target, data } = message || {};
   if (target !== 'background') return;
   if (type === 'save') {
