@@ -60,9 +60,6 @@ chrome.notifications.onButtonClicked.addListener(
   },
 );
 
-const isFirefox =
-  chrome.runtime.getManifest().browser_specific_settings !== undefined;
-
 /**
  * Set up the offscreen document for creating Blob URLs (Chrome only)
  */
@@ -84,6 +81,8 @@ const setupOffscreenDocument = async () => {
  * Save text content to a file
  */
 const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
+  const isFirefox =
+    chrome.runtime.getManifest().browser_specific_settings !== undefined;
   const filename = name + ext;
 
   if (isFirefox) {
