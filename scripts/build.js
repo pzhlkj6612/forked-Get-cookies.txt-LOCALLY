@@ -29,7 +29,9 @@ const build = async (version) => {
   });
 
   archive.pipe(output);
-  archive.glob('**/*', { ignore: ['manifest*.json'] });
+  archive.glob('**/*', {
+    ignore: ['manifest*.json', ...(options.firefox ? ['offscreen/**'] : [])],
+  });
 
   const manifest = JSON.parse(fs.readFileSync('manifest.json'));
   if (options.firefox) {
@@ -37,6 +39,9 @@ const build = async (version) => {
       fs.readFileSync('manifest-firefox.json'),
     );
     Object.assign(manifest, manifestFirefox);
+    manifest.permissions = manifest.permissions.filter(
+      (p) => p !== 'offscreen',
+    );
   }
   archive.append(JSON.stringify(manifest, null, 2), { name: 'manifest.json' });
 
