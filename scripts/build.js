@@ -14,7 +14,16 @@ const options = program
   .parse(process.argv)
   .opts();
 
-const getGitVersion = () => execSync('git describe --tags').toString().trim();
+const getGitVersion = () => {
+  try {
+    return execSync('git describe --tags').toString().trim();
+  } catch {
+    console.error(
+      'Error: No git tags found in this repository. Please create a tag first, e.g.: git tag v0.1.0',
+    );
+    process.exit(1);
+  }
+};
 
 const build = async (version) => {
   const mode = options.firefox ? 'firefox' : 'chrome';
