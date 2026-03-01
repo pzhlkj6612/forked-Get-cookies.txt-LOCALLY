@@ -61,7 +61,6 @@ chrome.notifications.onButtonClicked.addListener(
 );
 
 // Handle save file messages from the popup
-// https://issues.chromium.org/issues/469787959
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
     const filename = name + ext;
