@@ -60,17 +60,66 @@ chrome.notifications.onButtonClicked.addListener(
   },
 );
 
+const isFirefox =
+  chrome.runtime.getManifest().browser_specific_settings !== undefined;
+
 /**
- * Save text content to a file using data URL
+ * Set up the offscreen document for creating Blob URLs (Chrome only)
+ */
+const setupOffscreenDocument = async () => {
+  const offscreenUrl = chrome.runtime.getURL('offscreen.html');
+  const contexts = await chrome.runtime.getContexts({
+    contextTypes: ['OFFSCREEN_DOCUMENT'],
+    documentUrls: [offscreenUrl],
+  });
+  if (contexts.length > 0) return;
+  await chrome.offscreen.createDocument({
+    url: offscreenUrl,
+    reasons: ['BLOBS'],
+    justification: 'Create Blob URL for file download',
+  });
+};
+
+/**
+ * Save text content to a file
  */
 const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
   const filename = name + ext;
-  const bytes = new TextEncoder().encode(text);
-  const binary = Array.from(bytes, (byte) =>
-    String.fromCharCode(byte),
-  ).join('');
-  const url = `data:${mimeType};base64,${btoa(binary)}`;
-  await chrome.downloads.download({ url, filename, saveAs });
+  if (isFirefox) {
+    // Firefox background page has DOM access
+    const blob = new Blob([text], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const id = await chrome.downloads.download({ url, filename, saveAs });
+    /** @param {chrome.downloads.DownloadDelta} delta */
+    const onChange = (delta) => {
+      if (delta.id === id && delta.state?.current !== 'in_progress') {
+        chrome.downloads.onChanged.removeListener(onChange);
+        URL.revokeObjectURL(url);
+      }
+    };
+    chrome.downloads.onChanged.addListener(onChange);
+  } else {
+    // Chrome service worker: use offscreen document for Blob URL
+    await setupOffscreenDocument();
+    const { url } = await chrome.runtime.sendMessage({
+      type: 'create-blob-url',
+      target: 'offscreen',
+      data: { text, mimeType },
+    });
+    const id = await chrome.downloads.download({ url, filename, saveAs });
+    /** @param {chrome.downloads.DownloadDelta} delta */
+    const onChange = (delta) => {
+      if (delta.id === id && delta.state?.current !== 'in_progress') {
+        chrome.downloads.onChanged.removeListener(onChange);
+        chrome.runtime.sendMessage({
+          type: 'revoke-blob-url',
+          target: 'offscreen',
+          data: { url },
+        });
+      }
+    };
+    chrome.downloads.onChanged.addListener(onChange);
+  }
 };
 
 // Handle save file messages from the popup
