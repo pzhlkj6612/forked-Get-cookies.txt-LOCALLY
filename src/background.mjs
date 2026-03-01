@@ -67,7 +67,7 @@ const isFirefox =
  * Set up the offscreen document for creating Blob URLs (Chrome only)
  */
 const setupOffscreenDocument = async () => {
-  const offscreenUrl = chrome.runtime.getURL('offscreen.html');
+  const offscreenUrl = chrome.runtime.getURL('offscreen/offscreen.html');
   const contexts = await chrome.runtime.getContexts({
     contextTypes: ['OFFSCREEN_DOCUMENT'],
     documentUrls: [offscreenUrl],
