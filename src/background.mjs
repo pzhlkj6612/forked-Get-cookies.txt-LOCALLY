@@ -85,11 +85,13 @@ const setupOffscreenDocument = async () => {
  */
 const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
   const filename = name + ext;
+
   if (isFirefox) {
     // Firefox background page has DOM access
     const blob = new Blob([text], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const id = await chrome.downloads.download({ url, filename, saveAs });
+
     /** @param {chrome.downloads.DownloadDelta} delta */
     const onChange = (delta) => {
       if (delta.id === id && delta.state?.current !== 'in_progress') {
@@ -97,16 +99,19 @@ const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
         URL.revokeObjectURL(url);
       }
     };
+
     chrome.downloads.onChanged.addListener(onChange);
   } else {
     // Chrome service worker: use offscreen document for Blob URL
     await setupOffscreenDocument();
+
     const { url } = await chrome.runtime.sendMessage({
       type: 'create-blob-url',
       target: 'offscreen',
       data: { text, mimeType },
     });
     const id = await chrome.downloads.download({ url, filename, saveAs });
+
     /** @param {chrome.downloads.DownloadDelta} delta */
     const onChange = (delta) => {
       if (delta.id === id && delta.state?.current !== 'in_progress') {
@@ -118,6 +123,7 @@ const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
         });
       }
     };
+
     chrome.downloads.onChanged.addListener(onChange);
   }
 };
