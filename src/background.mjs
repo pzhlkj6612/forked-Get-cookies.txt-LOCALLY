@@ -60,9 +60,7 @@ chrome.notifications.onButtonClicked.addListener(
   },
 );
 
-// Save file from the background script (service worker) context to avoid crashes
-// on certain platforms (e.g., Linux+Wayland) when chrome.downloads.download()
-// is called from a popup.
+// Handle save file messages from the popup
 // https://issues.chromium.org/issues/469787959
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
