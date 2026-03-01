@@ -19,7 +19,7 @@ const getGitVersion = () => {
     return execSync('git describe --tags').toString().trim();
   } catch {
     console.error(
-      'Error: No git tags found. Please create a tag first, e.g.: git tag v0.1.0',
+      'Error: No git tags found. Please fetch tags from the remote repo first, e.g.: git fetch --tags',
     );
     process.exit(1);
   }
