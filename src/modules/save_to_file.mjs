@@ -1,6 +1,9 @@
 /**
  * Save text data as a file
- * Called from the background script (service worker) context.
+ * Called from the background script (service worker) context to avoid crashes
+ * on certain platforms (e.g., Linux+Wayland) when chrome.downloads.download()
+ * is called from a popup.
+ * https://issues.chromium.org/issues/469787959
  * @param {string} text
  * @param {string} name
  * @param {Format} format
