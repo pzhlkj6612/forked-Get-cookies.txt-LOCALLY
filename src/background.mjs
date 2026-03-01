@@ -92,7 +92,7 @@ const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
     const url = URL.createObjectURL(blob);
     const id = await chrome.downloads.download({ url, filename, saveAs });
 
-    /** @param {chrome.downloads.DownloadDelta} delta */
+    /** @param {chrome.downloads.DownloadDelta} delta  */
     const onChange = (delta) => {
       if (delta.id === id && delta.state?.current !== 'in_progress') {
         chrome.downloads.onChanged.removeListener(onChange);
@@ -112,7 +112,7 @@ const saveToFile = async (text, name, { ext, mimeType }, saveAs = false) => {
     });
     const id = await chrome.downloads.download({ url, filename, saveAs });
 
-    /** @param {chrome.downloads.DownloadDelta} delta */
+    /** @param {chrome.downloads.DownloadDelta} delta  */
     const onChange = (delta) => {
       if (delta.id === id && delta.state?.current !== 'in_progress') {
         chrome.downloads.onChanged.removeListener(onChange);
