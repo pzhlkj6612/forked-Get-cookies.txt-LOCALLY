@@ -61,7 +61,7 @@ chrome.notifications.onButtonClicked.addListener(
 );
 
 /**
- * Set up the offscreen document for creating Blob URLs (Chrome only)
+ * Chrome: set up the offscreen document for creating Blob URLs
  */
 const setupOffscreenDocument = async () => {
   const offscreenUrl = chrome.runtime.getURL('offscreen/offscreen.html');
